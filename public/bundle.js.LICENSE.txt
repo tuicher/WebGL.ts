@@ -1,0 +1,35 @@
+/*! exports provided: Material, MaterialLibrary */
+
+/*! exports provided: OBJ, Attribute, DuplicateAttributeException, Layout, Material, MaterialLibrary, Mesh, TYPES, downloadModels, downloadMeshes, initMeshBuffers, deleteMeshBuffers, version */
+
+/*! exports provided: TYPES, DuplicateAttributeException, Attribute, Layout */
+
+/*! exports provided: default */
+
+/*! exports provided: downloadModels, downloadMeshes, initMeshBuffers, deleteMeshBuffers */
+
+/*! no static exports found */
+
+/*!*********************!*\
+  !*** ./src/mesh.ts ***!
+  \*********************/
+
+/*!**********************!*\
+  !*** ./src/index.ts ***!
+  \**********************/
+
+/*!**********************!*\
+  !*** ./src/utils.ts ***!
+  \**********************/
+
+/*!***********************!*\
+  !*** ./src/layout.ts ***!
+  \***********************/
+
+/*!*************************!*\
+  !*** ./src/material.ts ***!
+  \*************************/
+
+/*!****************************!*\
+  !*** multi ./src/index.ts ***!
+  \****************************/
