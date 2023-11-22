@@ -1,5 +1,6 @@
 import { initShaderProgram } from "./engine/utils/ShaderLoader";
 import { Vector3 } from './engine/utils/Vector3';
+import { Camera } from "./engine/assets/Camera";
 const glMatrix = require('gl-matrix');
 const OBJ = require('webgl-obj-loader');
 // Meshes
@@ -157,17 +158,8 @@ function main(meshes : any): void {
 
 // Load .obj s and Textures
 window.onload = function() {
+	let camera = new Camera([0.0,0.0,0.0]);
 
-    let a = new Vector3([1.0,0.0,0.0]);
-    console.log(a);
-    console.log(a.x);
-    console.log(a.y);
-    console.log(a.z);
-    console.log(a.toArray());
-    a.normalize();
-    console.log(a.toArray());
-	a.rotateAroundAxis([0.0,1.0,0.0], 60.0);
-	console.log(a.toArray());
 
     let resources = {
         'diamond': new OBJ.Mesh(diamond),
