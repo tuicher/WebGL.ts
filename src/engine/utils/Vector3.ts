@@ -64,11 +64,8 @@ export class Vector3{
         let cosAngle = Math.cos(angle);
         let sinAngle = Math.sin(angle);
 
-        console.log('v-> [' + this.toArray() +']');
         let crossProduct = normAxis;
-        console.log('n-> [' + crossProduct.toArray() +']');
         crossProduct.cross(this.value);
-        console.log('r-> [' + crossProduct.toArray() +']');
 
         let dotProduct = normAxis.dot(this.value);
         
