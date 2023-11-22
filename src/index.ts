@@ -1,8 +1,13 @@
-import { initShaderProgram } from "./engine/ShaderLoader";
+import { initShaderProgram } from "./engine/utils/ShaderLoader";
+import { Vector3 } from './engine/utils/Vector3';
+const glMatrix = require('gl-matrix');
 const OBJ = require('webgl-obj-loader');
+// Meshes
 import diamond from '../models/DiaGem.obj';
+// Shaders
 import vert from './shaders/0_vert.glsl';
 import frag from './shaders/0_frag.glsl';
+
 
 function initWebGL(): WebGLRenderingContext | null {
     const canvas = document.getElementById('glCanvas') as HTMLCanvasElement;
@@ -18,10 +23,82 @@ function initWebGL(): WebGLRenderingContext | null {
     return gl;
 }
 
-function render(gl: WebGLRenderingContext): void {
+function render(gl: WebGLRenderingContext, programInfo: any, meshInfo: any, textInfo: any): void {
     
-    gl.clearColor(0.5, 0.5, 0.5, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clearDepth(1.0);
+    gl.enable(gl.DEPTH_TEST);
+    gl.depthFunc(gl.EQUAL);
+
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    //Camera config
+
+    //Matrix
+    let modelMatrix = new Float32Array(16);
+    glMatrix.mat4.identity(modelMatrix);
+
+    let scaleMatrix = new Float32Array(16);
+
+	let identityMatrix = new Float32Array(16);
+	glMatrix.mat4.identity(identityMatrix);
+
+	let angle = (performance.now() / 1000 / 12) * 2 * Math.PI;
+	glMatrix.mat4.rotate(modelMatrix, modelMatrix, angle, [0.0, 1.0, 0.0]);
+	glMatrix.mat4.rotate(modelMatrix, modelMatrix, angle, [1.0, 1.0, 0.0]);
+
+
+	// Definir un factor de escala
+	let scaleFactor = 50.0;
+	glMatrix.mat4.scale(scaleMatrix, identityMatrix, [
+		scaleFactor,
+		scaleFactor,
+		scaleFactor,
+	]);
+
+	glMatrix.mat4.mul(modelMatrix, modelMatrix, scaleMatrix);
+
+    //let viewMatrix = mainCam.viewMatrix;
+	//let projectionMatrix = mainCam.projectionMatrix;
+
+    /**********************************/
+	/********** Bind Buffers **********/
+	/**********************************/
+
+	gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+	gl.bindBuffer(gl.ARRAY_BUFFER, meshInfo.vertexBuffer);
+	gl.vertexAttribPointer(
+		programInfo.attribLocations.vertexPosition, // attribute
+		meshInfo.vertexBuffer.itemSize, // size
+		gl.FLOAT, // type
+		false, // normalized?
+		0, // stride
+		0 // array buffer offset
+	);
+
+	gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
+	gl.bindBuffer(gl.ARRAY_BUFFER, meshInfo.textureBuffer);
+	gl.vertexAttribPointer(
+		programInfo.attribLocations.textureCoord, // attribute
+		meshInfo.textureBuffer.itemSize, // size
+		gl.FLOAT, // type
+		false, // normalized?
+		0, // stride
+		0 // array buffer offset
+	);
+
+	gl.enableVertexAttribArray(programInfo.attribLocations.normalCoord);
+	gl.bindBuffer(gl.ARRAY_BUFFER, meshInfo.normalBuffer);
+	gl.vertexAttribPointer(
+		programInfo.attribLocations.normalCoord, // attribute
+		meshInfo.normalBuffer.itemSize, // size
+		gl.FLOAT, // type
+		false, // normalized?
+		0, // stride
+		0 // array buffer offset
+	);
+
+	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, meshInfo.indexBuffer);
 }
 
 function main(meshes : any): void {
@@ -41,13 +118,56 @@ function main(meshes : any): void {
     
     const shaderProgram = initShaderProgram(gl, vert, frag)
 
-    console.log(shaderProgram);
-    
-    render(gl);
+    if(!shaderProgram){
+        alert(
+			"Error creating shaderProgram"
+		);
+        return;
+    }
+
+    // Uniform info
+    const programInfo = {
+		program: shaderProgram,
+		attribLocations: {
+			vertexPosition: gl.getAttribLocation(shaderProgram, "aVertexPosition"),
+			textureCoord: gl.getAttribLocation(shaderProgram, "aTextureCoord"),
+			normalCoord: gl.getAttribLocation(shaderProgram, "aNormalCoord"),
+		},
+		uniformLocations: {
+			projectionMatrix: gl.getUniformLocation(
+				shaderProgram,
+				"uProjectionMatrix"
+			),
+			worldMatrix: gl.getUniformLocation(shaderProgram, "uWorldMatrix"),
+			viewMatrix: gl.getUniformLocation(shaderProgram, "uViewMatrix"),
+			modelMatrix: gl.getUniformLocation(shaderProgram, "uModelMatrix"),
+			normalMatrix: gl.getUniformLocation(shaderProgram, "uNormalMatrix"),
+			uSampler: gl.getUniformLocation(shaderProgram, "cSampler"),
+			rSampler: gl.getUniformLocation(shaderProgram, "rSampler"),
+			lightPos: gl.getUniformLocation(shaderProgram, "lightPos"),
+			lightColor: gl.getUniformLocation(shaderProgram, "lightColor"),
+			viewPos: gl.getUniformLocation(shaderProgram, "viewPos"),
+		},
+	};
+
+
+	
+    render(gl, programInfo, meshes.diamond, null);
 }
 
 // Load .obj s and Textures
 window.onload = function() {
+
+    let a = new Vector3([1.0,0.0,0.0]);
+    console.log(a);
+    console.log(a.x);
+    console.log(a.y);
+    console.log(a.z);
+    console.log(a.toArray());
+    a.normalize();
+    console.log(a.toArray());
+	a.rotateAroundAxis([0.0,1.0,0.0], 60.0);
+	console.log(a.toArray());
 
     let resources = {
         'diamond': new OBJ.Mesh(diamond),

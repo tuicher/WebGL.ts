@@ -18,6 +18,7 @@
     "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {
+    "gl-matrix": "^3.4.3",
     "webgl-obj-loader": "^2.0.8"
   }
 }
