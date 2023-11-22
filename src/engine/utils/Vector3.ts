@@ -1,4 +1,16 @@
 /**
+ * ----------------------------------------------------------------
+ *  This code was written by Javier R. Huertas (@tuicher)
+ *
+ *  Licensed under the MIT License. 
+ *  For more details, see the LICENSE file in the repository.
+ *
+ *  Repository: https://github.com/tuicher/WebGL.ts
+ * ----------------------------------------------------------------
+ */
+
+
+/**
  * Represents a 3D vector with operations for basic vector math.
  */
 export class Vector3{
