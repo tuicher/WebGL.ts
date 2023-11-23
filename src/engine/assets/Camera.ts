@@ -3,7 +3,7 @@ const glMatrix = require('gl-matrix');
 
 export class Camera {
     private position: Vector3;
-    private rotation: [number, number];
+    public rotation: [number, number];
 
     private lookAt: Vector3;
     private up: Vector3;
@@ -88,9 +88,9 @@ export class Camera {
     updateView(){
         glMatrix.mat4.lookAt(
             this.viewMatrix_,
-            this.position,
+            this.position.toArr,
             Vector3.add(this.position, this.lookAt).toArr,
-            this.up
+            this.up.toArr
         )
     }
 
@@ -116,26 +116,31 @@ export class Camera {
     }
 
     rotateVectors(){
+        
+
         this.lookAt = Vector3.rotateAroundAxis(
             Vector3.BACKWARD,
             this.up.toArr,
-            this.rotation[0]
+            this.rotation[1]
         )
 
+        console.log('b - '+this.lookAt.toArr)
         this.computeRight();
 
         this.up = Vector3.rotateAroundAxis(
             Vector3.UP,
             this.right.toArr,
-            this.rotation[1]
+            this.rotation[0]
         )
-
+        
         this.lookAt = Vector3.rotateAroundAxis(
             this.lookAt,
             this.right.toArr,
-            this.rotation[1]
+            this.rotation[0]
         )
 
         this.computeRight();
+
+        this.updateView();
     }
 }

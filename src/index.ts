@@ -1,4 +1,5 @@
 import { initShaderProgram } from "./engine/utils/ShaderLoader";
+import { printMatrix4x4 } from "./engine/utils/MatrixUtils";
 import { Vector3 } from './engine/utils/Vector3';
 import { Camera } from "./engine/assets/Camera";
 const glMatrix = require('gl-matrix');
