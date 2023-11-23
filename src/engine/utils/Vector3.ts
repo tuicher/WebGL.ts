@@ -36,12 +36,35 @@ export class Vector3{
      */
     public get toArr() : [number, number, number] { return this.value; }
 
-    static UP = Object.freeze([0.0, 1.0, 0.0]);
-    static DOWN = Object.freeze([0.0, -1.0, 0.0]);
-    static RIGHT = Object.freeze([1.0, 0.0, 0.0]);
-    static LEFT = Object.freeze([-1.0, 0.0, 0.0]);
-    static FORWARD = Object.freeze([0.0, 0.0, 1.0]);
-    static BACKWARD = Object.freeze([0.0, 0.0, -1.0]);
+    /**
+     * [0.0, 1.0, 0.0]
+     */
+    static UP = new Vector3([0.0, 1.0, 0.0]);
+
+    /**
+     * [0.0, -1.0, 0.0]
+     */
+    static DOWN = new Vector3([0.0, -1.0, 0.0]);
+
+    /**
+     * [1.0, 0.0, 0.0]
+     */
+    static RIGHT = new Vector3([1.0, 0.0, 0.0]);
+
+    /**
+     * [-1.0, 0.0, 0.0]
+     */
+    static LEFT =new Vector3([-1.0, 0.0, 0.0]);
+
+    /**
+     * [0.0, 0.0, 1.0]
+     */
+    static FORWARD = new Vector3([0.0, 0.0, 1.0]);
+
+    /**
+     * [0.0, 0.0, -1.0]
+     */
+    static BACKWARD = new Vector3([0.0, 0.0, -1.0]);
 
     /**
      * Constructs a new Vector3 with the specified components.
@@ -186,6 +209,39 @@ export class Vector3{
      */
     static degToRads(k : number) : number {
         return k * Math.PI / 180;
+    }
+
+    /**
+     * Rotates a vector around a specified axis by a given angle, it returns the rotated vector as a new instance of Vector3.
+     * 
+     * @param v The vector to be rotated.
+     * @param axis The axis to rotate around, represented as a tuple of three numbers.
+     * @param angle The angle of rotation in degrees.
+     * @returns A new Vector3 instance representing the rotated vector.
+     */
+    static rotateAroundAxis(v: Vector3, axis: [number, number, number], angle: number): Vector3{
+        angle = Vector3.degToRads(angle);
+
+        let normAxis = new Vector3(axis);
+        normAxis.normalize();
+
+        let cosAngle = Math.cos(angle);
+        let sinAngle = Math.sin(angle);
+
+        let crossProduct = normAxis;
+        crossProduct.cross(v);
+
+        let dotProduct = normAxis.dot(v);
+        
+        let parallelComponent = [normAxis.x * dotProduct, normAxis.y * dotProduct, normAxis.z * dotProduct];
+    
+        let rotatedVector = [
+            cosAngle * v.x + sinAngle * crossProduct.x + (1 - cosAngle) * parallelComponent[0],
+            cosAngle * v.y + sinAngle * crossProduct.y + (1 - cosAngle) * parallelComponent[1],
+            cosAngle * v.z + sinAngle * crossProduct.z + (1 - cosAngle) * parallelComponent[2]
+        ] as [number, number, number];
+    
+       return new Vector3(rotatedVector);
     }
 
     /**

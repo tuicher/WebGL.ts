@@ -104,5 +104,38 @@ export class Camera {
         );
     }
 
+    translate(displacement:Vector3) {
+        this.position.add(displacement);
+    }
 
+    rotate(xAxis:number, yAxis:number){
+        this.rotation[0] += xAxis;
+        this.rotation[1] += yAxis;
+
+        this.rotateVectors();
+    }
+
+    rotateVectors(){
+        this.lookAt = Vector3.rotateAroundAxis(
+            Vector3.BACKWARD,
+            this.up.toArr,
+            this.rotation[0]
+        )
+
+        this.computeRight();
+
+        this.up = Vector3.rotateAroundAxis(
+            Vector3.UP,
+            this.right.toArr,
+            this.rotation[1]
+        )
+
+        this.lookAt = Vector3.rotateAroundAxis(
+            this.lookAt,
+            this.right.toArr,
+            this.rotation[1]
+        )
+
+        this.computeRight();
+    }
 }
