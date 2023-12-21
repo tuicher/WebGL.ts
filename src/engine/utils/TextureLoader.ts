@@ -1,10 +1,12 @@
 // Definición de tipos para mayor claridad y seguridad de tipo
 type GLContext = WebGLRenderingContext;
+
 interface TextureData {
     image?: HTMLImageElement;
     src?: string;
     texture?: WebGLTexture;
 }
+
 interface TextInfo {
     textures: { [key: string]: TextureData };
 }

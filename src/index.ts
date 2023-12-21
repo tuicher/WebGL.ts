@@ -114,11 +114,13 @@ function main(meshes : any): void {
 		return;
     }
 
-    for (const i in meshes){
+    for (const i in meshes)
+	{
         OBJ.initMeshBuffers(gl, meshes[i]);
     }
     
     const shaderProgram = initShaderProgram(gl, vert, frag)
+
 
     if(!shaderProgram){
         alert(
@@ -161,10 +163,8 @@ function main(meshes : any): void {
 window.onload = function() {
 	let camera = new Camera([0.0,0.0,0.0]);
 
-
     let resources = {
         'diamond': new OBJ.Mesh(diamond),
     }
-   
     main(resources);
 }
