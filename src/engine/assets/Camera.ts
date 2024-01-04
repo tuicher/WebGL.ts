@@ -16,6 +16,7 @@ export class Camera {
 
     private viewMatrix_: Float32Array;
     private projMatrix_: Float32Array;
+    private projViewMatrix_: Float32Array;
 
     public get fov(): number {
         return this.fov_;
@@ -57,6 +58,15 @@ export class Camera {
         return this.projMatrix_;
     }
 
+    public get projViewMatrix(): Float32Array{
+        glMatrix.mat4.mul(this.projViewMatrix_, this.projMatrix_, this.viewMatrix_);
+        return this.projViewMatrix_;
+    }
+
+    public get pos(): Vector3{
+        return this.position;
+    }
+
     constructor(position: [number, number, number]){
         this.position = new Vector3(position);
         this.rotation = [ 0.0, 0.0];
@@ -73,6 +83,7 @@ export class Camera {
 
         this.viewMatrix_ = new Float32Array(16);
         this.projMatrix_ = new Float32Array(16);
+        this.projViewMatrix_ = new Float32Array(16);
 
         this.updateView();
         this.configureProjection();

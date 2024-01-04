@@ -23,8 +23,7 @@ export function initShaderProgram(
 
     if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
         alert(
-            "Unable to initialize the shader program: " +
-            gl.getProgramInfoLog(shaderProgram)
+            "Unable to initialize the shader program: " + gl.getProgramInfoLog(shaderProgram)
         );
         return null;
     }
@@ -38,6 +37,7 @@ function loadShader(
     source: string
 ): WebGLShader | null {
     const shader = gl.createShader(type);
+
     if (!shader) {
         alert("Unable to create shader.");
         return null;

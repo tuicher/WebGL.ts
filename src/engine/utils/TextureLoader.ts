@@ -12,7 +12,7 @@ interface TextInfo {
 }
 
 export async function loadTextures(gl: GLContext, textInfo: TextInfo): Promise<void> {
-    for (const [key, textureData] of Object.entries(textInfo.textures)) {
+    for (const [key, textureData] of Object.entries(textInfo)) {
         const texture = gl.createTexture();
 
         if (!texture)
@@ -20,8 +20,6 @@ export async function loadTextures(gl: GLContext, textInfo: TextInfo): Promise<v
             alert("Fail creating Texture");
             return;
         }
-            
-        
 
         gl.bindTexture(gl.TEXTURE_2D, texture);
 
@@ -60,7 +58,6 @@ export async function loadTextures(gl: GLContext, textInfo: TextInfo): Promise<v
                 image.src = textureData.src || '';
             }
         });
-
         textureData.texture = texture;
     }
 }
