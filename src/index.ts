@@ -6,7 +6,6 @@ import { loadTextures } from "./engine/utils/TextureLoader";
 import WebGLDebugCube  from "./engine/utils/WebGLDebugCube";
 const glMatrix = require('gl-matrix');
 const OBJ = require('webgl-obj-loader');
-const dat = require('dat.gui');
 // Meshes
 import diamond from '../models/DiaGem.obj';
 // Shaders
@@ -18,19 +17,6 @@ import aText from '../models/textures/metal/Metal046A_4K-PNG_Color.png';
 import rText from '../models/textures/metal/Metal046A_4K-PNG_Roughness.png';
 
 let mainCam = new Camera([0, 0, 10]);
-
-let gui = new dat.GUI();
-
-let settings = {
-	fov: 60
-};
-
-let fovController = gui.add(settings,'fov', 1, 120);
-
-fovController.onChange(function(value: number) {
-	mainCam.fov = (value * Math.PI) / 180;;
-	console.log(value);
-});
 
 function initWebGL(): WebGLRenderingContext | null {
     const canvas = document.getElementById('glCanvas') as HTMLCanvasElement;
@@ -61,37 +47,40 @@ function drawScene(gl: WebGLRenderingContext, programInfo: any, meshInfo: any, t
 	/**************************************/
 
 	gl.enable(gl.DEPTH_TEST);
+
+    //Camera config /!\ NO HACER EN BUCLE
+	mainCam.fov = (45 * Math.PI) / 180;
+	mainCam.aspectRatio = gl.canvas.width / gl.canvas.height;
 	mainCam.far = 1000.0;
 
-	
+	mainCam.configureProjection();
 
-	/****************************************/
-	/********** Matrix Calculation **********/
-	/****************************************/
-
+    //Matrix
     let modelMatrix = new Float32Array(16);
     glMatrix.mat4.identity(modelMatrix);
 
-    let scaleMatrix = new Float32Array(16);
-	glMatrix.mat4.identity(scaleMatrix);
+    //let scaleMatrix = new Float32Array(16);
+	//glMatrix.mat4.identity(scaleMatrix);
 
-	let identityMatrix = new Float32Array(16);
-	glMatrix.mat4.identity(identityMatrix);
+	//let identityMatrix = new Float32Array(16);
+	//glMatrix.mat4.identity(identityMatrix);
 
 	let angle = (performance.now() / 1000 / 12) * 2 * Math.PI;
 	glMatrix.mat4.rotate(modelMatrix, modelMatrix, angle, [0.0, 1.0, 0.0]);
 	glMatrix.mat4.rotate(modelMatrix, modelMatrix, angle, [1.0, 1.0, 0.0]);
 
-	let scaleFactor = 1.5;
-	glMatrix.mat4.scale(scaleMatrix, identityMatrix, [
-		scaleFactor,
-		scaleFactor,
-		scaleFactor,
-	]);
+	// Definir un factor de escala
+	//let scaleFactor = 0.25;
+	//glMatrix.mat4.scale(scaleMatrix, identityMatrix, [
+	//	scaleFactor,
+	//	scaleFactor,
+	//	scaleFactor,
+	//]);
 
-	glMatrix.mat4.mul(modelMatrix, modelMatrix, scaleMatrix);
+	//glMatrix.mat4.mul(modelMatrix, modelMatrix, scaleMatrix);
 
-	mainCam.configureProjection();
+    let viewMatrix = mainCam.viewMatrix;
+	let projectionMatrix = mainCam.projMatrix;
 
     /**********************************/
 	/********** Bind Buffers **********/
@@ -180,6 +169,7 @@ function drawScene(gl: WebGLRenderingContext, programInfo: any, meshInfo: any, t
 
 	//gl.useProgram(programInfo.program);
 	
+	
 	gl.uniformMatrix4fv(
 		programInfo.uLocations.projViewMatrix,
 		false,
@@ -191,7 +181,6 @@ function drawScene(gl: WebGLRenderingContext, programInfo: any, meshInfo: any, t
 		false,
 		modelMatrix
 	);
-
 	/*
 	gl.uniformMatrix4fv(
 		programInfo.uniformLocations.modelMatrix,
@@ -253,8 +242,6 @@ function main(resources : any): void {
 		);
 		return;
     }
-
-	mainCam.aspectRatio = gl.canvas.width / gl.canvas.height;
 
     for (const i in resources.meshes)
 	{
