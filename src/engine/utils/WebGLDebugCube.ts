@@ -49,12 +49,12 @@ class WebGLDebugCube {
     ]);
 
     private static indices: Uint16Array = new Uint16Array([
-        0,  1,  2,      0,  2,  3,    // Front
-        4,  5,  6,      4,  6,  7,    // Back
-        8,  9,  10,     8,  10, 11,   // Top
-        12, 13, 14,     12, 14, 15,   // Bottom
-        16, 17, 18,     16, 18, 19,   // Right
-        20, 21, 22,     20, 22, 23,   // Left
+        0, 1, 2,    0, 2, 3,
+        5, 4, 6,    6, 4, 7,
+        8, 9, 10,   8, 10, 11,
+        13, 12, 14, 15, 14, 12,
+        16, 17, 18, 16, 18, 19,
+        21, 20, 22, 22, 20, 23,   
     ]);
 
     private static faceColors: Float32Array;

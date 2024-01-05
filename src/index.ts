@@ -37,7 +37,7 @@ function render(gl: WebGLRenderingContext, programInfo: any, resources: any)
 	drawScene(gl, programInfo, resources.meshes.diamond, resources.textures);
 
 	// Hold loop
-	//requestAnimationFrame(() => render(gl, programInfo, resources));
+	 requestAnimationFrame(() => render(gl, programInfo, resources));
 }
 
 function drawScene(gl: WebGLRenderingContext, programInfo: any, meshInfo: any, textInfo: any): void {
@@ -45,6 +45,8 @@ function drawScene(gl: WebGLRenderingContext, programInfo: any, meshInfo: any, t
 	/**************************************/
 	/********** Positions Update **********/
 	/**************************************/
+
+	gl.enable(gl.DEPTH_TEST);
 
     //Camera config /!\ NO HACER EN BUCLE
 	mainCam.fov = (45 * Math.PI) / 180;
@@ -122,8 +124,6 @@ function drawScene(gl: WebGLRenderingContext, programInfo: any, meshInfo: any, t
 
 	let indices = WebGLDebugCube.getIndices();
 	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
-
-  	
 
 	/*
 	gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
@@ -298,7 +298,7 @@ function main(resources : any): void {
 			render(gl, programInfo, resources))
 	);
 	
-    //render(gl, programInfo, resources.meshes.diamond, resources.textures);
+    //render(gl, programInfo, resources);
 }
 
 // Load .obj s and Textures
