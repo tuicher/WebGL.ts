@@ -1,5 +1,34 @@
-# Dependencias
-/node_modules
+# Dependencias de Node (node_modules)
+node_modules/
 
-# Varios
-/.DS_Store
+# Archivos de registro
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Directorio de salida de Webpack
+/public/
+
+# Archivos de compilación de TypeScript
+**/*.tsbuildinfo
+
+# Archivos de caché del editor y sistema operativo
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Archivos de entorno (variables de entorno)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Archivos de compilación y salida de TypeScript
+/build/
+/lib/
+/out/
+
+# Archivos generados por file-loader u otros loaders (ajustar según la configuración)
+/assets/
