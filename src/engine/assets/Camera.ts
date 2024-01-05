@@ -76,7 +76,7 @@ export class Camera {
         this.right = new Vector3([0.0,0.0,0.0]);
         this.computeRight();
 
-        this.fov_ = 90;
+        this.fov_ = (60 * Math.PI) / 180;
         this.aspectRatio_ = 16/9;
         this.near_ = 0.1;
         this.far_ = 100;
