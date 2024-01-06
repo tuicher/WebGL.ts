@@ -4,11 +4,12 @@ import { Vector3 } from './engine/utils/Vector3';
 import { Camera } from "./engine/assets/Camera";
 import { loadTextures } from "./engine/utils/TextureLoader";
 import WebGLDebugCube  from "./engine/utils/WebGLDebugCube";
+import { ObjParser } from "./engine/utils/ObjParser";
 const glMatrix = require('gl-matrix');
 const OBJ = require('webgl-obj-loader');
 const dat = require('dat.gui');
 // Meshes
-import diamond from '../models/DiaGem.obj';
+import diamond from '../models/IceGem.obj';
 // Shaders
 import vert from './shaders/0_vert.glsl';
 import frag from './shaders/0_frag.glsl';
@@ -17,7 +18,7 @@ import uvText from '../models/textures/UVchecker.jpg'
 import aText from '../models/textures/metal/Metal046A_4K-PNG_Color.png';
 import rText from '../models/textures/metal/Metal046A_4K-PNG_Roughness.png';
 
-let mainCam = new Camera([0, 0, 10]);
+let mainCam = new Camera([0, 0, 5]);
 
 let gui = new dat.GUI();
 
@@ -82,7 +83,7 @@ function drawScene(gl: WebGLRenderingContext, programInfo: any, meshInfo: any, t
 	glMatrix.mat4.rotate(modelMatrix, modelMatrix, angle, [0.0, 1.0, 0.0]);
 	glMatrix.mat4.rotate(modelMatrix, modelMatrix, angle, [1.0, 1.0, 0.0]);
 
-	let scaleFactor = 1.5;
+	let scaleFactor = 1.0;
 	glMatrix.mat4.scale(scaleMatrix, identityMatrix, [
 		scaleFactor,
 		scaleFactor,
@@ -103,7 +104,7 @@ function drawScene(gl: WebGLRenderingContext, programInfo: any, meshInfo: any, t
 	let vertexBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
 
-	let vertices = WebGLDebugCube.getVertices();
+	let vertices = meshInfo.getVertexPositions();
 	// Send data to buffer
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
 
@@ -111,7 +112,7 @@ function drawScene(gl: WebGLRenderingContext, programInfo: any, meshInfo: any, t
 	let colorBuffer = gl.createBuffer();
 	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
 
-	let colors = WebGLDebugCube.getFaceColors();
+	let colors = meshInfo.getVertexColors();
 	// Send data to buffer
 	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
 
@@ -133,7 +134,7 @@ function drawScene(gl: WebGLRenderingContext, programInfo: any, meshInfo: any, t
 	var indexBuffer = gl.createBuffer();
   	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 
-	let indices = WebGLDebugCube.getIndices();
+	let indices = meshInfo.getIndexes();
 	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
 
 	/*
@@ -255,12 +256,12 @@ function main(resources : any): void {
     }
 
 	mainCam.aspectRatio = gl.canvas.width / gl.canvas.height;
-
+/*
     for (const i in resources.meshes)
 	{
         OBJ.initMeshBuffers(gl, resources.meshes[i]);
     }
-
+*/
     const shaderProgram = initShaderProgram(gl, vert, frag)
 
     if(!shaderProgram){
@@ -320,7 +321,7 @@ window.onload = function() {
     let resources = {
 		meshes:
 		{
-			'diamond': new OBJ.Mesh(diamond),
+			'diamond': new ObjParser(diamond),
 		},
 		textures:{
 			colorTexture:{
