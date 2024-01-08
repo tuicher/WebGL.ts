@@ -9,7 +9,9 @@ const glMatrix = require('gl-matrix');
 const OBJ = require('webgl-obj-loader');
 const dat = require('dat.gui');
 // Meshes
-import diamond from '../models/IceGem.obj';
+//import mesh from '../models/IceGem.obj';
+import mesh from '../models/PistolModel/Pistol_Model.obj';
+//import mesh from '../models/PRIVATE/TCT_Grenade.obj';
 // Shaders
 import vert from './shaders/0_vert.glsl';
 import frag from './shaders/0_frag.glsl';
@@ -64,7 +66,7 @@ function drawScene(gl: WebGLRenderingContext, programInfo: any, meshInfo: any, t
 	gl.enable(gl.DEPTH_TEST);
 	mainCam.far = 1000.0;
 
-	
+	//console.log(meshInfo);
 
 	/****************************************/
 	/********** Matrix Calculation **********/
@@ -83,7 +85,9 @@ function drawScene(gl: WebGLRenderingContext, programInfo: any, meshInfo: any, t
 	glMatrix.mat4.rotate(modelMatrix, modelMatrix, angle, [0.0, 1.0, 0.0]);
 	glMatrix.mat4.rotate(modelMatrix, modelMatrix, angle, [1.0, 1.0, 0.0]);
 
-	let scaleFactor = 1.0;
+	//glMatrix.mat4.translate(modelMatrix, modelMatrix, [0.0, -1.0, 0.0])
+
+	let scaleFactor = 1.5;
 	glMatrix.mat4.scale(scaleMatrix, identityMatrix, [
 		scaleFactor,
 		scaleFactor,
@@ -134,11 +138,11 @@ function drawScene(gl: WebGLRenderingContext, programInfo: any, meshInfo: any, t
 	var indexBuffer = gl.createBuffer();
   	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
 
-	let indices = meshInfo.getIndexes();
+	let indices = meshInfo.getVertexIndexes();
 	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
 
 	/*
-	gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+	gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);r
 	gl.bindBuffer(gl.ARRAY_BUFFER, meshInfo.vertexBuffer);
 	gl.vertexAttribPointer(
 		programInfo.attribLocations.vertexPosition, // attribute
@@ -321,7 +325,7 @@ window.onload = function() {
     let resources = {
 		meshes:
 		{
-			'diamond': new ObjParser(diamond),
+			'diamond': new ObjParser(mesh),
 		},
 		textures:{
 			colorTexture:{
@@ -334,6 +338,8 @@ window.onload = function() {
 			}
 		}
 	}
+
+	console.log(resources.meshes.diamond);
 
     main(resources);
 }

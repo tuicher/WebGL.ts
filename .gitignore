@@ -32,3 +32,7 @@ yarn-error.log*
 
 # Archivos generados por file-loader u otros loaders (ajustar según la configuración)
 /assets/
+
+
+# PRIVATE MODELS
+/models/PRIVATE
