@@ -1,38 +1,55 @@
 import { initShaderProgram } from "./engine/utils/ShaderLoader";
-import { printMatrix4x4 } from "./engine/utils/MatrixUtils";
-import { Vector3 } from './engine/utils/Vector3';
+import { printMatrix4x4 } from "./engine/utils/math/MatrixUtils";
+import { Vector3 } from './engine/utils/math/Vector3';
 import { Camera } from "./engine/assets/Camera";
 import { loadTextures } from "./engine/utils/TextureLoader";
 import WebGLDebugCube  from "./engine/utils/WebGLDebugCube";
 import { ObjParser } from "./engine/utils/ObjParser";
+import { Transform } from "./engine/assets/Transform";
 const glMatrix = require('gl-matrix');
 const OBJ = require('webgl-obj-loader');
 const dat = require('dat.gui');
 // Meshes
 //import mesh from '../models/IceGem.obj';
-import mesh from '../models/PistolModel/Pistol_Model.obj';
+import mesh from '../models/untitled.obj';
+//import mesh from "../models/IcoSphere.obj";
+import gun from '../models/PistolModel/Pistol_Model.obj';
 //import mesh from '../models/PRIVATE/TCT_Grenade.obj';
 // Shaders
-import vert from './shaders/0_vert.glsl';
-import frag from './shaders/0_frag.glsl';
+import vert from './shaders/1_vert.glsl';
+import frag from './shaders/1_frag.glsl';
 // Textures 
-import uvText from '../models/textures/UVchecker.jpg'
-import aText from '../models/textures/metal/Metal046A_4K-PNG_Color.png';
+import uvText from '../models/textures/lol.png'
+import cText from '../models/PistolModel/_Berreta M9_Material_BaseColor.png';
 import rText from '../models/textures/metal/Metal046A_4K-PNG_Roughness.png';
 
-let mainCam = new Camera([0, 0, 5]);
+let mainCam = new Camera([0, 0, 10]);
+
+let axis = [Vector3.UP, Vector3.RIGHT];
+
+let objects: any[] = [];
 
 let gui = new dat.GUI();
 
 let settings = {
-	fov: 60
+	fov: 60,
+	meshScale: 1.0
 };
 
-let fovController = gui.add(settings,'fov', 1, 120);
+let fovController = gui.add(settings,'fov', 0.01, 120);
+let meshScaleController = gui.add(settings,'meshScale', 0.01, 10);
 
 fovController.onChange(function(value: number) {
-	mainCam.fov = (value * Math.PI) / 180;;
-	console.log(value);
+	mainCam.fov = (value * Math.PI) / 180;
+	//console.log(value);
+});
+
+meshScaleController.onChange(function(value: number) {
+	for (const obj of objects) {
+        if (obj.transform && obj.transform.setUniformScale) {
+            obj.transform.setUniformScale(value);
+        }
+    }
 });
 
 function initWebGL(): WebGLRenderingContext | null {
@@ -49,203 +66,104 @@ function initWebGL(): WebGLRenderingContext | null {
     return gl;
 }
 
+
+// Definir la frecuencia deseada (FPS)
+const fps = 120;
+const fpsInterval = 1000 / fps;
+
 function render(gl: WebGLRenderingContext, programInfo: any, resources: any)
 {
-	drawScene(gl, programInfo, resources.meshes.diamond, resources.textures);
+    // Código de renderización
+    drawScene(gl, programInfo, resources);
+
+    // Programar la próxima llamada
+    setTimeout(() => render(gl, programInfo, resources), fpsInterval);
+}
+/*
+function render(gl: WebGLRenderingContext, programInfo: any, resources: any)
+{
+	drawScene(gl, programInfo, resources.meshes.test, resources.textures);
 
 	// Hold loop
 	 requestAnimationFrame(() => render(gl, programInfo, resources));
 }
+*/
 
-function drawScene(gl: WebGLRenderingContext, programInfo: any, meshInfo: any, textInfo: any): void {
+function drawScene(gl: WebGLRenderingContext, programInfo: any, resources: any): void {
 
 	/**************************************/
 	/********** Positions Update **********/
 	/**************************************/
 
-	gl.enable(gl.DEPTH_TEST);
-	mainCam.far = 1000.0;
-
-	//console.log(meshInfo);
-
-	/****************************************/
-	/********** Matrix Calculation **********/
-	/****************************************/
-
-    let modelMatrix = new Float32Array(16);
-    glMatrix.mat4.identity(modelMatrix);
-
-    let scaleMatrix = new Float32Array(16);
-	glMatrix.mat4.identity(scaleMatrix);
-
-	let identityMatrix = new Float32Array(16);
-	glMatrix.mat4.identity(identityMatrix);
-
-	let angle = (performance.now() / 1000 / 12) * 2 * Math.PI;
-	glMatrix.mat4.rotate(modelMatrix, modelMatrix, angle, [0.0, 1.0, 0.0]);
-	glMatrix.mat4.rotate(modelMatrix, modelMatrix, angle, [1.0, 1.0, 0.0]);
-
-	//glMatrix.mat4.translate(modelMatrix, modelMatrix, [0.0, -1.0, 0.0])
-
-	let scaleFactor = 1.5;
-	glMatrix.mat4.scale(scaleMatrix, identityMatrix, [
-		scaleFactor,
-		scaleFactor,
-		scaleFactor,
-	]);
-
-	glMatrix.mat4.mul(modelMatrix, modelMatrix, scaleMatrix);
-
-	mainCam.configureProjection();
-
-    /**********************************/
-	/********** Bind Buffers **********/
-	/**********************************/
-
-	gl.useProgram(programInfo.program);
-
-	// Vertex Buffer
-	let vertexBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-
-	let vertices = meshInfo.getVertexPositions();
-	// Send data to buffer
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.STATIC_DRAW);
-
-	// Color Buffer
-	let colorBuffer = gl.createBuffer();
-	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-
-	let colors = meshInfo.getVertexColors();
-	// Send data to buffer
-	gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-
-	// Assing vertex data
-	gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-	let vertexPosition = gl.getAttribLocation(programInfo.program, 'aVertexPosition');
-	gl.vertexAttribPointer(vertexPosition, 3, gl.FLOAT, false, 0, 0);
-  	gl.enableVertexAttribArray(vertexPosition);
-
-	// Assing colors data
-	gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-	let vertexColor = gl.getAttribLocation(programInfo.program, 'aVertexColor');
-	gl.vertexAttribPointer(vertexColor, 4, gl.FLOAT, false, 0, 0);
-	gl.enableVertexAttribArray(vertexColor);
+    gl.enable(gl.CULL_FACE);
+    gl.enable(gl.DEPTH_TEST);
+ 
+    // Clear the canvas AND the depth buffer.
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
 	gl.clearColor(0.0, 0.0, 0.0, 1.0);
-	gl.clear(gl.COLOR_BUFFER_BIT);
 
-	var indexBuffer = gl.createBuffer();
-  	gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+	mainCam.far = 1000.0;
+	mainCam.configureProjection();
 
-	let indices = meshInfo.getVertexIndexes();
-	gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, new Uint16Array(indices), gl.STATIC_DRAW);
+	let index = -1;
+	let jndex = 0;
 
-	/*
-	gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);r
-	gl.bindBuffer(gl.ARRAY_BUFFER, meshInfo.vertexBuffer);
-	gl.vertexAttribPointer(
-		programInfo.attribLocations.vertexPosition, // attribute
-		meshInfo.vertexBuffer.itemSize, // size
-		gl.FLOAT, // type
-		false, // normalized?
-		0, // stride
-		0 // array buffer offset
-	);
-	*/
+	for (const obj of resources.objects)
+	{
+		// Actualiza la transformación del objeto
 
-	/*
-	gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
-	gl.bindBuffer(gl.ARRAY_BUFFER, meshInfo.textureBuffer);
-	gl.vertexAttribPointer(
-		programInfo.attribLocations.textureCoord, // attribute
-		meshInfo.textureBuffer.itemSize, // size
-		gl.FLOAT, // type
-		false, // normalized?
-		0, // stride
-		0 // array buffer offset
-	);
+		let aux = axis[jndex]
+        obj.transform.rotation.rotateAroundAxis(aux, index * 0.5 / fps);
+		index *= -1;
+		if(index == -1)
+		{
+			jndex++;
+		}
 
-	gl.enableVertexAttribArray(programInfo.attribLocations.normalCoord);
-	gl.bindBuffer(gl.ARRAY_BUFFER, meshInfo.normalBuffer);
-	gl.vertexAttribPointer(
-		programInfo.attribLocations.normalCoord, // attribute
-		meshInfo.normalBuffer.itemSize, // size
-		gl.FLOAT, // type
-		false, // normalized?
-		0, // stride
-		0 // array buffer offset
-	);
-	*/
-	//gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, meshInfo.indexBuffer);
+		gl.useProgram(programInfo.program);
 
-	/**********************************/
-	/***** Set the shader uniforms ****/
-	/**********************************/
+		 // ProjView
+		 gl.uniformMatrix4fv(
+            programInfo.uLocations.projViewMatrix,
+            false,
+            mainCam.projViewMatrix
+        );
 
-	//gl.useProgram(programInfo.program);
+		// Model
+        gl.uniformMatrix4fv(
+            programInfo.uLocations.modelMatrix,
+            false,
+            obj.transform.getModelMatrix()
+        );
+
+		OBJ.initMeshBuffers(gl, obj.mesh);
+
+		// Enlazar y configurar el buffer de vértices
+		gl.bindBuffer(gl.ARRAY_BUFFER, obj.mesh.vertexBuffer);
+		gl.vertexAttribPointer(
+			programInfo.aLocations.vertexPosition,
+			obj.mesh.vertexBuffer.itemSize,
+			gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(programInfo.aLocations.vertexPosition);
 	
-	gl.uniformMatrix4fv(
-		programInfo.uLocations.projViewMatrix,
-		false,
-		mainCam.projViewMatrix
-	);
-
-	gl.uniformMatrix4fv(
-		programInfo.uLocations.modelMatrix,
-		false,
-		modelMatrix
-	);
-
-	/*
-	gl.uniformMatrix4fv(
-		programInfo.uniformLocations.modelMatrix,
-		false,
-		modelMatrix
-	);
-
-	var normalMatrix = glMatrix.mat4.create();
-	glMatrix.mat4.invert(normalMatrix, modelMatrix);
-	glMatrix.mat4.transpose(normalMatrix, normalMatrix);
-
-	gl.uniformMatrix4fv(
-		programInfo.uniformLocations.normalMatrix,
-		false,
-		normalMatrix
-	);
-	*/
-
-	// Illumination Uniforms
-	//gl.uniform3fv(programInfo.uniformLocations.lightPos, [50, 50, 100]);
-	//gl.uniform3fv(programInfo.uniformLocations.lightColor, [0.9, 0.9, 1]);
-	//gl.uniform3fv(programInfo.uniformLocations.viewPos, mainCam.pos.toArr);
-
-	// Tell WebGL we want to affect texture unit 0
-	//gl.activeTexture(gl.TEXTURE0);
-
-	// Bind the texture to texture unit 0
-	//let index = gl.bindTexture(gl.TEXTURE_2D, textInfo.colorTexture.texture);
-
-	// Tell the shader we bound the texture to texture unit 0
-	//gl.uniform1i(programInfo.uniformLocations.cSampler, 0);
-
-	//gl.activeTexture(gl.TEXTURE1);
-	//index = gl.bindTexture(gl.TEXTURE_2D, textInfo.roughnessTexture.texture);
-	//gl.uniform1i(programInfo.uniformLocations.rSampler, 1);
+		// Enlazar y configurar el buffer de coordenadas de textura
+		gl.bindBuffer(gl.ARRAY_BUFFER, obj.mesh.textureBuffer);
+		gl.vertexAttribPointer(
+			programInfo.aLocations.textureCoord,
+			obj.mesh.textureBuffer.itemSize,
+			gl.FLOAT, false, 0, 0);
+		gl.enableVertexAttribArray(programInfo.aLocations.textureCoord);
 	
-	/*
-	gl.drawElements(
-		gl.TRIANGLES,
-		meshInfo.indexBuffer.numItems,
-		gl.UNSIGNED_SHORT,
-		0
-	);
-	*/
-	
+		// Cargar y enlazar la textura del objeto
+		let textureInfo = resources.textures[obj.texture];
+		gl.activeTexture(gl.TEXTURE0);
+		gl.bindTexture(gl.TEXTURE_2D, textureInfo.texture);
+		gl.uniform1i(programInfo.uLocations.cSampler, 0);
 
-	// Draw Call
-	gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
-	
+		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, obj.mesh.indexBuffer);
+        gl.drawElements(gl.TRIANGLES, obj.mesh.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
+	}
 }
 
 function main(resources : any): void {
@@ -279,11 +197,13 @@ function main(resources : any): void {
 	const programInfo = {
 		program: shaderProgram,
 		aLocations: {
-			vertexPosition: gl.getAttribLocation(shaderProgram, "aVertexPosition")
+			vertexPosition: gl.getAttribLocation(shaderProgram, "aVertexPosition"),
+			textureCoord: gl.getAttribLocation(shaderProgram, "aTextureCoord"),
 		},
 		uLocations: {
 			projViewMatrix: gl.getUniformLocation(shaderProgram, "uProjViewMatrix"),
-			modelMatrix: gl.getUniformLocation(shaderProgram, "uModelMatrix")
+			modelMatrix: gl.getUniformLocation(shaderProgram, "uModelMatrix"),
+			cSampler: gl.getUniformLocation(shaderProgram, "cSampler"),
 		}
 	}
 	/*
@@ -312,8 +232,11 @@ function main(resources : any): void {
 	};
 */
 	loadTextures(gl, resources.textures).then(() =>
+	{
+		//console.log(resources.textures);
 		requestAnimationFrame(() => 
 			render(gl, programInfo, resources))
+	}
 	);
 	
     //render(gl, programInfo, resources);
@@ -322,14 +245,42 @@ function main(resources : any): void {
 // Load .obj s and Textures
 window.onload = function() {
 
+	let icoSphere = new OBJ.Mesh(mesh);
+
+	let pistol = new OBJ.Mesh(gun);
+
+	let bias = 3.0;
+
     let resources = {
-		meshes:
-		{
-			'diamond': new ObjParser(mesh),
-		},
+		objects: [
+			{
+				mesh: icoSphere,
+				texture: 'colorTexture',
+				transform: new Transform(new Vector3([bias,0.0,0.0]))
+			}, 
+			{
+				mesh: icoSphere,
+				texture: 'uvCheckerTexture',
+				transform: new Transform(new Vector3([-bias,0.0,0.0]))
+			},
+			{
+				mesh: pistol,
+				texture: 'colorTexture',
+				transform: new Transform(new Vector3([0.0,bias,0.0]))
+			},
+			{
+				mesh: pistol,
+				texture: 'uvCheckerTexture',
+				transform: new Transform(new Vector3([0.0,-bias,0.0]))
+			} 
+		],
 		textures:{
+			uvCheckerTexture:{
+				src: uvText,
+				texture: undefined
+			},
 			colorTexture:{
-				src: aText,
+				src: cText,
 				texture: undefined
 			},
 			roughnessTexture:{
@@ -339,7 +290,6 @@ window.onload = function() {
 		}
 	}
 
-	console.log(resources.meshes.diamond);
-
+	objects = resources.objects;
     main(resources);
 }

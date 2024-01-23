@@ -4,14 +4,20 @@ type Indexes = {
     nIndexes: number[];
 };
 
+type Data = {
+    vertexPosData: number[][],
+    vertexAtribData: number[][],
+    textCoordData: number[][],
+    normalsData: number[][]
+}
+
 export class ObjParser {
     private vertexPositions: number[];
     private vertexColors: number[];
     private vertexNormals: number[];
     private vertexTexCoords: number[];
 
-    private textCoordData: number[][];
-    private normalsData: number[][];
+    private data: Data;
 
     private indexes: Indexes;
     
@@ -23,8 +29,12 @@ export class ObjParser {
         this.vertexNormals = [];
         this.vertexTexCoords = [];
 
-        this.textCoordData = [];
-        this.normalsData = [];
+        this.data = {
+            vertexPosData: [],
+            vertexAtribData: [],
+            textCoordData: [],
+            normalsData: []
+        };
 
         this.indexes = {
             vIndexes: [],
@@ -52,6 +62,7 @@ export class ObjParser {
             {
                 case 'v':
                     this.stats.numVertex++;
+                    this.data.vertexPosData.push([parseFloat(parts[1]), parseFloat(parts[2]), parseFloat(parts[3])]);
                     this.vertexPositions.push(parseFloat(parts[1]), parseFloat(parts[2]), parseFloat(parts[3]));
 
                     if (parts.length === 7)
@@ -60,14 +71,13 @@ export class ObjParser {
                     }
                     break;
                 case 'vn':
-                    this.normalsData.push([parseFloat(parts[1]), parseFloat(parts[2]), parseFloat(parts[3])]);
+                    this.data.normalsData.push([parseFloat(parts[1]), parseFloat(parts[2]), parseFloat(parts[3])]);
                     break;
                 case 'vt':
-                    this.textCoordData.push([parseFloat(parts[1]), parseFloat(parts[2])]);
+                    this.data.textCoordData.push([parseFloat(parts[1]), parseFloat(parts[2])]);
                     break;
                 case 'f':
-                    const face = parts.slice(1).map(part => 
-                        {
+                    const face = parts.slice(1).map(part => {
                             return part.split('/').map(p => p ? parseInt(p, 10) : -1);
                         });
                     
@@ -102,18 +112,22 @@ export class ObjParser {
 
     private calculateArrays()
     {
-        this.vertexNormals = this.extractIndexedData(this.indexes.nIndexes, this.normalsData);
-        this.vertexTexCoords = this.extractIndexedData(this.indexes.tIndexes, this.textCoordData);
+        //this.vertexPositions = this.extractIndexedData(this.indexes.vIndexes, this.data.vertexPosData);
+        this.vertexNormals = this.extractIndexedData(this.indexes.nIndexes, this.data.normalsData);
+        this.vertexTexCoords = this.extractIndexedData(this.indexes.tIndexes, this.data.textCoordData);
     }
 
     private  extractIndexedData(indexes: number[], data: number[][]): number[] {
         let extractedData: number[] = [];
 
         for (let index of indexes) {
-            let dataIndex = index - 1;
-    
+            let dataIndex = index;
+
+            
             if (dataIndex >= 0 && dataIndex < data.length) {
                 extractedData = extractedData.concat(data[dataIndex]);
+            } else {
+                console.log("Warning - Invalid Index");
             }
         }
         return extractedData;
@@ -132,7 +146,7 @@ export class ObjParser {
     }
 
     public getVertexTextCoord(): number[] {
-        return this.vertexNormals;
+        return this.vertexTexCoords;
     }
 
     public getVertexIndexes(): number[] {

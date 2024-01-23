@@ -1,4 +1,4 @@
-import { Vector3 } from "../utils/Vector3";
+import { Vector3 } from "../utils/math/Vector3";
 const glMatrix = require('gl-matrix');
 
 export class Camera {
