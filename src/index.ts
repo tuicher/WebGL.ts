@@ -67,7 +67,7 @@ function initWebGL(): WebGLRenderingContext | null {
     return gl;
 }
 
-const fps = 120;
+const fps = 60;
 const fpsInterval = 1000 / fps;
 
 function MainLoop(gl: WebGLRenderingContext, resources: any)
@@ -210,22 +210,22 @@ window.onload = function() {
     let resources = {
 		objects: [
 			{
-				mesh: icoSphere,
+				mesh: pistol,
 				texture: 'colorTexture',
 				transform: new Transform(new Vector3([bias,0.0,0.0])),
 				shader: 'basicShader'
 			}, 
 			{
-				mesh: icoSphere,
-				texture: 'uvCheckerTexture',
+				mesh: pistol,
+				texture: 'colorTexture',
 				transform: new Transform(new Vector3([-bias,0.0,0.0])),
-				shader: 'basicShader'
+				shader: 'inverseShader'
 			},
 			{
 				mesh: icoSphere,
-				texture: 'colorTexture',
+				texture: 'uvCheckerTexture',
 				transform: new Transform(new Vector3([0.0,bias,0.0])),
-				shader: 'inverseShader'
+				shader: 'basicShader'
 			},
 			{
 				mesh: icoSphere,
