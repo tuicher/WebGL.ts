@@ -1,6 +1,5 @@
 // Attribute
 attribute vec4 aVertexPosition;
-attribute vec4 aVertexColor;
 attribute vec2 aTextureCoord;
 
 // Uniforms
@@ -15,6 +14,5 @@ void main()
 {
 	gl_Position = uProjViewMatrix * uModelMatrix * aVertexPosition;
 	
-	vColor = aVertexColor;
 	vTextureCoord = aTextureCoord;
 }

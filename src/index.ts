@@ -18,6 +18,7 @@ import gun from '../models/PistolModel/Pistol_Model.obj';
 // Shaders
 import vert from './shaders/1_vert.glsl';
 import frag from './shaders/1_frag.glsl';
+import frag2 from './shaders/1_1_frag.glsl';
 // Textures 
 import uvText from '../models/textures/lol.png'
 import cText from '../models/PistolModel/_Berreta M9_Material_BaseColor.png';
@@ -46,10 +47,10 @@ fovController.onChange(function(value: number) {
 
 meshScaleController.onChange(function(value: number) {
 	for (const obj of objects) {
-        if (obj.transform && obj.transform.setUniformScale) {
-            obj.transform.setUniformScale(value);
-        }
-    }
+		if (obj.transform && obj.transform.setUniformScale) {
+			obj.transform.setUniformScale(value);
+		}
+	}
 });
 
 function initWebGL(): WebGLRenderingContext | null {
@@ -66,42 +67,27 @@ function initWebGL(): WebGLRenderingContext | null {
     return gl;
 }
 
-
-// Definir la frecuencia deseada (FPS)
 const fps = 120;
 const fpsInterval = 1000 / fps;
 
-function render(gl: WebGLRenderingContext, programInfo: any, resources: any)
+function MainLoop(gl: WebGLRenderingContext, resources: any)
 {
-    // Código de renderización
-    drawScene(gl, programInfo, resources);
+    // Render
+    drawScene(gl, resources);
 
-    // Programar la próxima llamada
-    setTimeout(() => render(gl, programInfo, resources), fpsInterval);
+    // Call next render
+    setTimeout(() => MainLoop(gl, resources), fpsInterval);
 }
-/*
-function render(gl: WebGLRenderingContext, programInfo: any, resources: any)
+
+function drawScene(gl: WebGLRenderingContext, resources: any): void
 {
-	drawScene(gl, programInfo, resources.meshes.test, resources.textures);
-
-	// Hold loop
-	 requestAnimationFrame(() => render(gl, programInfo, resources));
-}
-*/
-
-function drawScene(gl: WebGLRenderingContext, programInfo: any, resources: any): void {
-
-	/**************************************/
-	/********** Positions Update **********/
-	/**************************************/
-
-    gl.enable(gl.CULL_FACE);
+	gl.enable(gl.CULL_FACE);
     gl.enable(gl.DEPTH_TEST);
  
     // Clear the canvas AND the depth buffer.
+	gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-	gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
 	mainCam.far = 1000.0;
 	mainCam.configureProjection();
@@ -112,7 +98,6 @@ function drawScene(gl: WebGLRenderingContext, programInfo: any, resources: any):
 	for (const obj of resources.objects)
 	{
 		// Actualiza la transformación del objeto
-
 		let aux = axis[jndex]
         obj.transform.rotation.rotateAroundAxis(aux, index * 0.5 / fps);
 		index *= -1;
@@ -121,18 +106,19 @@ function drawScene(gl: WebGLRenderingContext, programInfo: any, resources: any):
 			jndex++;
 		}
 
-		gl.useProgram(programInfo.program);
+		const programInfo = resources.shaders[obj.shader].program;
+        gl.useProgram(programInfo.program);
 
 		 // ProjView
 		 gl.uniformMatrix4fv(
-            programInfo.uLocations.projViewMatrix,
+            programInfo.uLocations.uProjViewMatrix,
             false,
             mainCam.projViewMatrix
         );
 
 		// Model
         gl.uniformMatrix4fv(
-            programInfo.uLocations.modelMatrix,
+            programInfo.uLocations.uModelMatrix,
             false,
             obj.transform.getModelMatrix()
         );
@@ -142,18 +128,18 @@ function drawScene(gl: WebGLRenderingContext, programInfo: any, resources: any):
 		// Enlazar y configurar el buffer de vértices
 		gl.bindBuffer(gl.ARRAY_BUFFER, obj.mesh.vertexBuffer);
 		gl.vertexAttribPointer(
-			programInfo.aLocations.vertexPosition,
+			programInfo.aLocations.aVertexPosition,
 			obj.mesh.vertexBuffer.itemSize,
 			gl.FLOAT, false, 0, 0);
-		gl.enableVertexAttribArray(programInfo.aLocations.vertexPosition);
+		gl.enableVertexAttribArray(programInfo.aLocations.aVertexPosition);
 	
 		// Enlazar y configurar el buffer de coordenadas de textura
 		gl.bindBuffer(gl.ARRAY_BUFFER, obj.mesh.textureBuffer);
 		gl.vertexAttribPointer(
-			programInfo.aLocations.textureCoord,
+			programInfo.aLocations.aTextureCoord,
 			obj.mesh.textureBuffer.itemSize,
 			gl.FLOAT, false, 0, 0);
-		gl.enableVertexAttribArray(programInfo.aLocations.textureCoord);
+		gl.enableVertexAttribArray(programInfo.aLocations.aTextureCoord);
 	
 		// Cargar y enlazar la textura del objeto
 		let textureInfo = resources.textures[obj.texture];
@@ -166,83 +152,53 @@ function drawScene(gl: WebGLRenderingContext, programInfo: any, resources: any):
 	}
 }
 
-function main(resources : any): void {
+async function initScene(resources: any): Promise<void> {
     const gl = initWebGL();
 
-    if (!gl)
-    {
-        alert(
-			"Unable to initialize WebGL. Your browser or machine may not support it."
-		);
-		return;
-    }
-
-	mainCam.aspectRatio = gl.canvas.width / gl.canvas.height;
-/*
-    for (const i in resources.meshes)
-	{
-        OBJ.initMeshBuffers(gl, resources.meshes[i]);
-    }
-*/
-    const shaderProgram = initShaderProgram(gl, vert, frag)
-
-    if(!shaderProgram){
-        alert(
-			"Error creating shaderProgram"
-		);
+    if (!gl) {
+        alert("Unable to initialize WebGL. Your browser or machine may not support it.");
         return;
     }
 
-    // Uniform info
-	const programInfo = {
-		program: shaderProgram,
-		aLocations: {
-			vertexPosition: gl.getAttribLocation(shaderProgram, "aVertexPosition"),
-			textureCoord: gl.getAttribLocation(shaderProgram, "aTextureCoord"),
-		},
-		uLocations: {
-			projViewMatrix: gl.getUniformLocation(shaderProgram, "uProjViewMatrix"),
-			modelMatrix: gl.getUniformLocation(shaderProgram, "uModelMatrix"),
-			cSampler: gl.getUniformLocation(shaderProgram, "cSampler"),
-		}
-	}
-	/*
-    const programInfo = {
-		program: shaderProgram,
-		attribLocations: {
-			vertexPosition: gl.getAttribLocation(shaderProgram, "aVertexPosition"),
-			textureCoord: gl.getAttribLocation(shaderProgram, "aTextureCoord"),
-			normalCoord: gl.getAttribLocation(shaderProgram, "aNormalCoord"),
-		},
-		uniformLocations: {
-			projectionMatrix: gl.getUniformLocation(
-				shaderProgram,
-				"uProjectionMatrix"
-			),
-			worldMatrix: gl.getUniformLocation(shaderProgram, "uWorldMatrix"),
-			viewMatrix: gl.getUniformLocation(shaderProgram, "uViewMatrix"),
-			modelMatrix: gl.getUniformLocation(shaderProgram, "uModelMatrix"),
-			normalMatrix: gl.getUniformLocation(shaderProgram, "uNormalMatrix"),
-			uSampler: gl.getUniformLocation(shaderProgram, "cSampler"),
-			rSampler: gl.getUniformLocation(shaderProgram, "rSampler"),
-			lightPos: gl.getUniformLocation(shaderProgram, "lightPos"),
-			lightColor: gl.getUniformLocation(shaderProgram, "lightColor"),
-			viewPos: gl.getUniformLocation(shaderProgram, "viewPos"),
-		},
-	};
-*/
-	loadTextures(gl, resources.textures).then(() =>
-	{
-		//console.log(resources.textures);
-		requestAnimationFrame(() => 
-			render(gl, programInfo, resources))
-	}
-	);
-	
-    //render(gl, programInfo, resources);
+    mainCam.aspectRatio = gl.canvas.width / gl.canvas.height;
+
+    // Iterar a través de cada shader y compilarlos
+    for (const shaderKey in resources.shaders) {
+        const shader = resources.shaders[shaderKey];
+        const shaderProgram = initShaderProgram(gl, shader.vertShader, shader.fragShader);
+
+        if (!shaderProgram) {
+            alert("Error creating shader program for: " + shaderKey);
+            continue;
+        }
+
+        // Almacenar la información del programa compilado
+        shader.program = {
+            program: shaderProgram,
+            aLocations: {},
+            uLocations: {}
+        };
+
+        shader.attributes.forEach((attr: string) => {
+            shader.program.aLocations[attr] = gl.getAttribLocation(shaderProgram, attr);
+        });
+
+        shader.uniforms.forEach((uniform: string) => {
+            shader.program.uLocations[uniform] = gl.getUniformLocation(shaderProgram, uniform);
+        });
+
+		console.log(shader);
+    }
+
+    // Cargar texturas
+    await loadTextures(gl, resources.textures);
+
+    // Render
+    MainLoop(gl, resources);
 }
 
-// Load .obj s and Textures
+
+
 window.onload = function() {
 
 	let icoSphere = new OBJ.Mesh(mesh);
@@ -256,22 +212,26 @@ window.onload = function() {
 			{
 				mesh: icoSphere,
 				texture: 'colorTexture',
-				transform: new Transform(new Vector3([bias,0.0,0.0]))
+				transform: new Transform(new Vector3([bias,0.0,0.0])),
+				shader: 'basicShader'
 			}, 
 			{
 				mesh: icoSphere,
 				texture: 'uvCheckerTexture',
-				transform: new Transform(new Vector3([-bias,0.0,0.0]))
+				transform: new Transform(new Vector3([-bias,0.0,0.0])),
+				shader: 'basicShader'
 			},
 			{
-				mesh: pistol,
+				mesh: icoSphere,
 				texture: 'colorTexture',
-				transform: new Transform(new Vector3([0.0,bias,0.0]))
+				transform: new Transform(new Vector3([0.0,bias,0.0])),
+				shader: 'inverseShader'
 			},
 			{
-				mesh: pistol,
+				mesh: icoSphere,
 				texture: 'uvCheckerTexture',
-				transform: new Transform(new Vector3([0.0,-bias,0.0]))
+				transform: new Transform(new Vector3([0.0,-bias,0.0])),
+				shader: 'inverseShader'
 			} 
 		],
 		textures:{
@@ -287,9 +247,25 @@ window.onload = function() {
 				src: rText,
 				texture: undefined
 			}
+		},
+		shaders: {
+			'basicShader': {
+				vertShader: vert,
+				fragShader: frag,
+				attributes: ['aVertexPosition', 'aTextureCoord'],
+				uniforms: ['uProjViewMatrix', 'uModelMatrix', 'cSampler'],
+				program: null,
+			},
+			'inverseShader': {
+				vertShader: vert,
+				fragShader: frag2,
+				attributes: ['aVertexPosition', 'aTextureCoord'],
+				uniforms: ['uProjViewMatrix', 'uModelMatrix', 'cSampler'],
+				program: null,
+			}
 		}
 	}
 
 	objects = resources.objects;
-    main(resources);
+    initScene(resources);
 }
