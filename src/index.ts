@@ -11,8 +11,8 @@ const OBJ = require('webgl-obj-loader');
 const dat = require('dat.gui');
 // Meshes
 //import mesh from '../models/IceGem.obj';
-import mesh from '../models/Sphere.obj';
-//import mesh from '../models/Sphere_LowPoly.obj';
+//import mesh from '../models/Sphere.obj';
+import mesh from '../models/Sphere_LowPoly.obj';
 //import mesh from "../models/IcoSphere.obj";
 import gun from '../models/PistolModel/Pistol_Model.obj';
 //import mesh from '../models/PRIVATE/TCT_Grenade.obj';
@@ -37,8 +37,6 @@ import flatColor from '../models/textures/cyan.png';
 
 let mainCam = new Camera([0, 0, 10]);
 
-let axis = [Vector3.UP, Vector3.RIGHT];
-
 let objects: any[] = [];
 
 let gui = new dat.GUI();
@@ -58,7 +56,8 @@ fovController.onChange(function(value: number) {
 
 meshScaleController.onChange(function(value: number) {
 	for (const obj of objects) {
-		if (obj.transform && obj.transform.setUniformScale) {
+		if (obj.transform && obj.transform.setUniformScale)
+		{
 			obj.transform.setUniformScale(value);
 		}
 	}
@@ -103,20 +102,11 @@ function drawScene(gl: WebGLRenderingContext, resources: any): void
 	mainCam.far = 1000.0;
 	mainCam.configureProjection();
 
-	let index = -1;
-	let jndex = 0;
-
 	for (const obj of resources.objects)
 	{
-		// Actualiza la transformación del objeto
-		let aux = axis[jndex]
-        obj.transform.rotation.rotateAroundAxis(aux, index * 0.25 / fps);
-		index *= -1;
-		if(index == -1)
-		{
-			jndex++;
-		}
-
+        obj.transform.rotation.rotateAroundAxis(Vector3.UP, 0.25 / fps);
+		obj.transform.rotation.rotateAroundAxis(Vector3.FORWARD, 0.25 / fps);
+		
 		const programInfo = resources.shaders[obj.shader].program;
         gl.useProgram(programInfo.program);
 
@@ -132,84 +122,12 @@ function drawScene(gl: WebGLRenderingContext, resources: any): void
 	}
 }
 
-/*
-function drawScene(gl: WebGLRenderingContext, resources: any): void
-{
-	gl.enable(gl.CULL_FACE);
-    gl.enable(gl.DEPTH_TEST);
- 
-    // Clear the canvas AND the depth buffer.
-	gl.clearColor(0.0, 0.0, 0.0, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-
-	mainCam.far = 1000.0;
-	mainCam.configureProjection();
-
-	let index = -1;
-	let jndex = 0;
-
-	for (const obj of resources.objects)
-	{
-		// Actualiza la transformación del objeto
-		let aux = axis[jndex]
-        obj.transform.rotation.rotateAroundAxis(aux, index * 0.5 / fps);
-		index *= -1;
-		if(index == -1)
-		{
-			jndex++;
-		}
-
-		const programInfo = resources.shaders[obj.shader].program;
-        gl.useProgram(programInfo.program);
-
-		 // ProjView
-		 gl.uniformMatrix4fv(
-            programInfo.uLocations.uProjViewMatrix,
-            false,
-            mainCam.projViewMatrix
-        );
-
-		// Model
-        gl.uniformMatrix4fv(
-            programInfo.uLocations.uModelMatrix,
-            false,
-            obj.transform.getModelMatrix()
-        );
-
-		OBJ.initMeshBuffers(gl, obj.mesh);
-
-		// Enlazar y configurar el buffer de vértices
-		gl.bindBuffer(gl.ARRAY_BUFFER, obj.mesh.vertexBuffer);
-		gl.vertexAttribPointer(
-			programInfo.aLocations.aVertexPosition,
-			obj.mesh.vertexBuffer.itemSize,
-			gl.FLOAT, false, 0, 0);
-		gl.enableVertexAttribArray(programInfo.aLocations.aVertexPosition);
-	
-		// Enlazar y configurar el buffer de coordenadas de textura
-		gl.bindBuffer(gl.ARRAY_BUFFER, obj.mesh.textureBuffer);
-		gl.vertexAttribPointer(
-			programInfo.aLocations.aTextureCoord,
-			obj.mesh.textureBuffer.itemSize,
-			gl.FLOAT, false, 0, 0);
-		gl.enableVertexAttribArray(programInfo.aLocations.aTextureCoord);
-	
-		// Cargar y enlazar la textura del objeto
-		let textureInfo = resources.textures[obj.texture];
-		gl.activeTexture(gl.TEXTURE0);
-		gl.bindTexture(gl.TEXTURE_2D, textureInfo.texture);
-		gl.uniform1i(programInfo.uLocations.cSampler, 0);
-
-		gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, obj.mesh.indexBuffer);
-        gl.drawElements(gl.TRIANGLES, obj.mesh.indexBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-	}
-}
-*/
 async function initScene(resources: any): Promise<void> {
     const gl = initWebGL();
 
-    if (!gl) {
+    if (!gl) 
+	{
         alert("Unable to initialize WebGL. Your browser or machine may not support it.");
         return;
     }
@@ -254,7 +172,6 @@ async function initScene(resources: any): Promise<void> {
 window.onload = function() {
 
 	let icoSphere = new OBJ.Mesh(mesh);
-
 	let pistol = new OBJ.Mesh(gun);
 
 	let bias = 4.0;
@@ -264,25 +181,25 @@ window.onload = function() {
 			{
 				mesh: icoSphere,
 				texture: 'flatColorTexture',
-				transform: new Transform(new Vector3([bias,0.0,0.0])),
+				transform: new Transform(new Vector3([-bias,bias,0.0])),
 				shader: 'BlinnShading'
 			}, 
 			{
 				mesh: icoSphere,
 				texture: 'flatColorTexture',
-				transform: new Transform(new Vector3([-bias,0.0,0.0])),
+				transform: new Transform(new Vector3([-bias,-bias,0.0])),
 				shader: 'GouraudShading'
 			},
 			{
 				mesh: icoSphere,
 				texture: 'flatColorTexture',
-				transform: new Transform(new Vector3([0.0,bias,0.0])),
+				transform: new Transform(new Vector3([bias,bias,0.0])),
 				shader: 'FlatShading'
 			},
 			{
 				mesh: icoSphere,
 				texture: 'flatColorTexture',
-				transform: new Transform(new Vector3([0.0,-bias,0.0])),
+				transform: new Transform(new Vector3([bias,-bias,0.0])),
 				shader: 'PhongShading'
 			} 
 		],
@@ -351,7 +268,7 @@ window.onload = function() {
 		lights: [
 			{
 				position: [ 0.0, 0.0, bias],
-				color: [ 1.0 ,1.0, 1.0]
+				color: [ 1.0 , 1.0, 1.0]
 			}
 		]
 	}
