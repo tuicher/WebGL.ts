@@ -35,13 +35,13 @@ import vFull from './shaders/FullShading/CompleteShader_vert.glsl';
 import fFull from './shaders/FullShading/CompleteShader_frag.glsl';
 // Textures 
 import uvText from '../models/textures/lol.png'
-//import cText from '../models/PistolModel/_Berreta M9_Material_BaseColor.png';
-import cText from '../models/textures/rock/Rock050_4K-PNG_Color.png';
-//import rText from '../models/PistolModel/_Berreta M9_Material_Roughness.png';
-import rText from '../models/textures/rock/Rock050_4K-PNG_Roughness.png';
+import cText from '../models/PistolModel/_Berreta M9_Material_BaseColor.png';
+//import cText from '../models/textures/rock/Rock050_4K-PNG_Color.png';
+import rText from '../models/PistolModel/_Berreta M9_Material_Roughness.png';
+//import rText from '../models/textures/rock/Rock050_4K-PNG_Roughness.png';
 import nText from '../models/PistolModel/_Berreta M9_Material_Normal.png';
-//import aoText from '../models/PistolModel/_Berreta M9_Material_AO.png';
-import aoText from '../models/textures/rock/Rock050_4K-PNG_AmbientOcclusion.png';
+import aoText from '../models/PistolModel/_Berreta M9_Material_AO.png';
+//import aoText from '../models/textures/rock/Rock050_4K-PNG_AmbientOcclusion.png';
 import flatColor from '../models/textures/cyan.png';
 
 let mainCam = new Camera([0, 0, 15]);
@@ -315,7 +315,7 @@ window.onload = function() {
 
 	let bias = 4.0;
 
-	
+	/*
     let resources = {
 		objects: [
 			{
@@ -404,8 +404,8 @@ window.onload = function() {
 			}
 		]
 	}
+	*/
 	
-	/*
 	let resources = {
 		objects: [
 			{
@@ -477,7 +477,7 @@ window.onload = function() {
 			}
 		]
 	}
-	*/
+	
 	objects = resources.objects;
     initScene(resources);
 }
@@ -516,7 +516,6 @@ function setShaderAttributes(gl: WebGLRenderingContext, programInfo: any, mesh: 
         const location = programInfo.aLocations[attr];
         let buffer;
 
-        // Mapeo explícito de atributos a buffers
         switch (attr) {
             case 'aVertexPosition':
                 buffer = mesh.vertexBuffer;

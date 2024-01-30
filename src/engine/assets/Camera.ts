@@ -152,16 +152,17 @@ export class Camera {
                 break;
             case ' ':
                 this.translate(Vector3.scalar(Vector3.UP, event.ctrlKey ? velocidad * 2 : -velocidad));
-            case 'ArrowUp':
+            
+            case 'ArrowRight':
                 this.rotate(0.0, event.ctrlKey ? rotSpeed * 2 : -rotSpeed);
                 break;
-            case 'ArrowDown':
+            case 'ArrowLeft':
                 this.rotate(0.0, event.ctrlKey ? rotSpeed * 2 : rotSpeed);
                 break;
-            case 'ArrowLeft':
+            case 'ArrowUp':
                 this.rotate(event.ctrlKey ? rotSpeed * 2 : rotSpeed, 0.0);
                 break;
-            case 'ArrowRight':
+            case 'ArrowDown':
                 this.rotate(event.ctrlKey ? rotSpeed * 2 : -rotSpeed, 0.0);
                 break;
         }
