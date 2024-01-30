@@ -126,6 +126,49 @@ export class Camera {
         this.rotateVectors();
     }
 
+    handleEvent(event: KeyboardEvent, deltaTime: number): void {
+        let velocidad = 4.0 * deltaTime;
+        let rotSpeed = Vector3.degToRads(10.5);
+
+        switch (event.key) {
+            case 'W':
+            case 'w':
+                this.translate(Vector3.scalar(this.lookAt, event.ctrlKey ? velocidad * 2 : velocidad));
+                break;
+            case 'S':
+            case 's':
+                this.translate(Vector3.scalar(this.lookAt, event.ctrlKey ? -velocidad * 2 : -velocidad));
+                break;
+            case 'A':
+            case 'a':
+                this.translate(Vector3.scalar(this.right, event.ctrlKey ? -velocidad * 2 : -velocidad));
+                break;
+            case 'D':
+            case 'd':
+                this.translate(Vector3.scalar(this.right, event.ctrlKey ? velocidad * 2 : +velocidad));
+                break;
+            case 'Shift':
+                this.translate(Vector3.scalar(Vector3.UP, event.ctrlKey ? velocidad * 2 : velocidad));
+                break;
+            case ' ':
+                this.translate(Vector3.scalar(Vector3.UP, event.ctrlKey ? velocidad * 2 : -velocidad));
+            case 'ArrowUp':
+                this.rotate(0.0, event.ctrlKey ? rotSpeed * 2 : -rotSpeed);
+                break;
+            case 'ArrowDown':
+                this.rotate(0.0, event.ctrlKey ? rotSpeed * 2 : rotSpeed);
+                break;
+            case 'ArrowLeft':
+                this.rotate(event.ctrlKey ? rotSpeed * 2 : rotSpeed, 0.0);
+                break;
+            case 'ArrowRight':
+                this.rotate(event.ctrlKey ? rotSpeed * 2 : -rotSpeed, 0.0);
+                break;
+        }
+
+        this.updateView();
+    }
+
     rotateVectors(){
         
 
@@ -135,7 +178,7 @@ export class Camera {
             this.rotation[1]
         )
 
-        console.log('b - '+this.lookAt.toArr)
+        //console.log('b - '+this.lookAt.toArr)
         this.computeRight();
 
         this.up = Vector3.rotateAroundAxis(

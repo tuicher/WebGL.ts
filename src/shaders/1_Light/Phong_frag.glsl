@@ -7,10 +7,10 @@ uniform vec3 uLightColor;
 uniform vec3 uCameraPos;
 
 // Parameters (Could be Uniforms)
-vec3 uAmbientStrength = vec3(0.1);
-vec3 uDiffuseStrength = vec3(1.0);
-float uSpecularStrength = 0.5;
-float uShininess = 32.0;
+uniform vec3 uAmbientStrength;
+uniform vec3 uDiffuseStrength;
+uniform float uSpecularStrength;
+uniform float uShininess;
 
 // Varyings
 varying highp vec2 vTextureCoord;
@@ -24,15 +24,20 @@ void main(void)
     vec3 norm = normalize(vNormalCoord);
     vec3 lightDir = normalize(uLightPos - vFragPos);
 	vec3 viewDir = normalize(uCameraPos - vFragPos);
+    
+    // Cálculo de la atenuación
+	// I(d) = I_d0 * (d0/d) ^ 2
+    float d0 = 4.0;
+	float attenuation = pow((d0 / length(uLightPos - vFragPos)), 2.0);
 
     // Difuse
     float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = uDiffuseStrength * diff * uLightColor;
+    vec3 diffuse = uDiffuseStrength * diff * uLightColor * attenuation;
 
     // Specular
     vec3 reflectDir = reflect(-lightDir, norm);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), uShininess);
-    vec3 specular = uSpecularStrength * spec * uLightColor;
+    vec3 specular = uSpecularStrength * spec * uLightColor * attenuation;
 
     // Ambient
     vec3 ambient = uAmbientStrength * uLightColor;

@@ -12,7 +12,9 @@ const dat = require('dat.gui');
 // Meshes
 //import mesh from '../models/IceGem.obj';
 //import mesh from '../models/Sphere.obj';
-import mesh from '../models/Sphere_LowPoly.obj';
+//import mesh from '../models/Sphere_LowPoly.obj';
+import torus from '../models/Torus.obj';
+import NoNormalSmoorhTorus from '../models/Torus_NoSmooth.obj'
 //import mesh from "../models/IcoSphere.obj";
 import gun from '../models/PistolModel/Pistol_Model.obj';
 //import mesh from '../models/PRIVATE/TCT_Grenade.obj';
@@ -29,13 +31,24 @@ import vGouraud from './shaders/1_Light/Gouraud_vert.glsl';
 import fGouraud from './shaders/1_Light/Gouraud_frag.glsl';
 import vBlinn from './shaders/1_Light/Blinn_vert.glsl';
 import fBlinn from './shaders/1_Light/Blinn_frag.glsl';
+import vFull from './shaders/FullShading/CompleteShader_vert.glsl';
+import fFull from './shaders/FullShading/CompleteShader_frag.glsl';
 // Textures 
 import uvText from '../models/textures/lol.png'
-import cText from '../models/PistolModel/_Berreta M9_Material_BaseColor.png';
-import rText from '../models/textures/metal/Metal046A_4K-PNG_Roughness.png';
+//import cText from '../models/PistolModel/_Berreta M9_Material_BaseColor.png';
+import cText from '../models/textures/rock/Rock050_4K-PNG_Color.png';
+//import rText from '../models/PistolModel/_Berreta M9_Material_Roughness.png';
+import rText from '../models/textures/rock/Rock050_4K-PNG_Roughness.png';
+import nText from '../models/PistolModel/_Berreta M9_Material_Normal.png';
+//import aoText from '../models/PistolModel/_Berreta M9_Material_AO.png';
+import aoText from '../models/textures/rock/Rock050_4K-PNG_AmbientOcclusion.png';
 import flatColor from '../models/textures/cyan.png';
 
-let mainCam = new Camera([0, 0, 10]);
+let mainCam = new Camera([0, 0, 15]);
+
+document.addEventListener("keydown", (event) => {
+	mainCam.handleEvent(event, 1/fps);
+});
 
 let objects: any[] = [];
 
@@ -47,7 +60,132 @@ let settings = {
 };
 
 let fovController = gui.add(settings,'fov', 0.01, 120);
+
 let meshScaleController = gui.add(settings,'meshScale', 0.01, 10);
+
+let ambientComponent = [0.1, 0.1, 0.1]
+
+const ambient = {
+	r: ambientComponent[0],
+	g: ambientComponent[1],
+	b: ambientComponent[2],
+	uniformValue: 0.1
+};
+
+const ambientFolder = gui.addFolder('Ambient');
+
+const raController = ambientFolder.add(ambient, 'r', 0, 1, 0.025).name('Red').onChange((newValue : any) => 
+{
+	ambientComponent[0] = newValue;
+});
+const gaController = ambientFolder.add(ambient, 'g', 0, 1, 0.025).name('Green').onChange((newValue : any) => 
+{
+	ambientComponent[1] = newValue;
+});
+const baController = ambientFolder.add(ambient, 'b', 0, 1, 0.025).name('Blue').onChange((newValue : any) => 
+{
+	ambientComponent[2] = newValue;
+});
+ambientFolder.add(ambient, 'uniformValue', 0, 1).name('Uniform').onChange((newValue : any) => {
+	ambient.r = newValue;
+	ambient.g = newValue;
+	ambient.b = newValue;
+	raController.updateDisplay();
+	gaController.updateDisplay();
+	baController.updateDisplay();
+	ambientComponent[0] = newValue;
+	ambientComponent[1] = newValue;
+	ambientComponent[2] = newValue;
+  });
+
+//ambientFolder.open();
+
+let diffuseComponent = [1.0, 1.0, 1.0]
+
+const diffuse = {
+	r: diffuseComponent[0],
+	g: diffuseComponent[1],
+	b: diffuseComponent[2],
+	uniformValue: 1.0
+}
+
+const diffuseFolder = gui.addFolder('Diffuse');
+
+const rdController = diffuseFolder.add(diffuse, 'r', 0, 1, 0.05).name('Red').onChange((newValue : any) => 
+{
+	diffuseComponent[0] = newValue;
+});
+const gdController = diffuseFolder.add(diffuse, 'g', 0, 1, 0.05).name('Green').onChange((newValue : any) => 
+{
+	diffuseComponent[1] = newValue;
+});
+const bdController = diffuseFolder.add(diffuse, 'b', 0, 1, 0.05).name('Blue').onChange((newValue : any) => 
+{
+	diffuseComponent[2] = newValue;
+});
+
+diffuseFolder.add(diffuse, 'uniformValue', 0, 1).name('Uniform').onChange((newValue : any) => {
+	diffuse.r = newValue;
+	diffuse.g = newValue;
+	diffuse.b = newValue;
+	rdController.updateDisplay();
+	gdController.updateDisplay();
+	bdController.updateDisplay();
+	diffuseComponent[0] = newValue;
+	diffuseComponent[1] = newValue;
+	diffuseComponent[2] = newValue;
+  });
+
+//diffuseFolder.open();
+
+const materialProperties = {
+	specular: 0.5 ,
+	shininess: 32 
+};
+
+let specularComponent = 0.5;
+let shininessComponent = 32;
+gui.add(materialProperties, 'specular', 0, 1,0.05).name('Specular').onChange((newValue : any) => {
+	specularComponent = newValue;
+});
+
+gui.add(materialProperties, 'shininess', 1, 250).name('Shininess').onChange((newValue : any) => {
+	shininessComponent = newValue;
+});
+
+let lightPos = [0.0,3.0,5.0];
+let lightColor = [1.0,1.0,1.0];
+
+const lightSettings = {
+	positionX: lightPos[0],
+	positionY: lightPos[1],
+	positionZ: lightPos[2],
+	color: "#ffffff"
+};
+
+// Crear el folder Luz
+const lightFolder = gui.addFolder('Light');
+
+// Agregar controles para la posición
+lightFolder.add(lightSettings, 'positionX', -10, 10, 0.1).onChange((value: any) => {
+	lightPos[0] = value;
+});
+lightFolder.add(lightSettings, 'positionY', -10, 10, 0.1).onChange((value: any) => {
+	lightPos[1] = value;
+});
+lightFolder.add(lightSettings, 'positionZ', -10, 10, 0.1).onChange((value: any) => {
+	lightPos[2] = value;
+});
+
+const colorFolder = lightFolder.addFolder('Color');
+
+colorFolder.addColor(lightSettings, 'color').onChange((value : any) => {
+	lightColor = hexToNormalizedRgb(value);
+});
+
+// Abrir los folders automáticamente
+//lightFolder.open();
+//colorFolder.open();
 
 fovController.onChange(function(value: number) {
 	mainCam.fov = (value * Math.PI) / 180;
@@ -62,7 +200,6 @@ meshScaleController.onChange(function(value: number) {
 		}
 	}
 });
-
 function initWebGL(): WebGLRenderingContext | null {
     const canvas = document.getElementById('glCanvas') as HTMLCanvasElement;
     canvas.width = window.innerWidth;
@@ -77,7 +214,7 @@ function initWebGL(): WebGLRenderingContext | null {
     return gl;
 }
 
-const fps = 60;
+const fps = 144;
 const fpsInterval = 1000 / fps;
 
 function MainLoop(gl: WebGLRenderingContext, resources: any)
@@ -171,33 +308,36 @@ async function initScene(resources: any): Promise<void> {
 
 window.onload = function() {
 
-	let icoSphere = new OBJ.Mesh(mesh);
+	let toro = new OBJ.Mesh(torus);
+	let flatToro = new OBJ.Mesh(NoNormalSmoorhTorus);
+
 	let pistol = new OBJ.Mesh(gun);
 
 	let bias = 4.0;
 
+	
     let resources = {
 		objects: [
 			{
-				mesh: icoSphere,
+				mesh: toro,
 				texture: 'flatColorTexture',
 				transform: new Transform(new Vector3([-bias,bias,0.0])),
 				shader: 'BlinnShading'
 			}, 
 			{
-				mesh: icoSphere,
+				mesh: toro,
 				texture: 'flatColorTexture',
 				transform: new Transform(new Vector3([-bias,-bias,0.0])),
 				shader: 'GouraudShading'
 			},
 			{
-				mesh: icoSphere,
+				mesh: flatToro,
 				texture: 'flatColorTexture',
 				transform: new Transform(new Vector3([bias,bias,0.0])),
 				shader: 'FlatShading'
 			},
 			{
-				mesh: icoSphere,
+				mesh: toro,
 				texture: 'flatColorTexture',
 				transform: new Transform(new Vector3([bias,-bias,0.0])),
 				shader: 'PhongShading'
@@ -206,14 +346,6 @@ window.onload = function() {
 		textures:{
 			uvCheckerTexture:{
 				src: uvText,
-				texture: undefined
-			},
-			colorTexture:{
-				src: cText,
-				texture: undefined
-			},
-			roughnessTexture:{
-				src: rText,
 				texture: undefined
 			},
 			flatColorTexture:{
@@ -240,28 +372,28 @@ window.onload = function() {
 				vertShader: vPhong,
 				fragShader: fPhong,
 				attributes: ['aVertexPosition', 'aTextureCoord', 'aNormalCoord'],
-				uniforms: ['uProjViewMatrix', 'uModelMatrix', 'uNormalMatrix', 'cSampler', 'uCameraPos', 'uLightPos', 'uLightColor'],
+				uniforms: ['uProjViewMatrix', 'uModelMatrix', 'uNormalMatrix', 'cSampler', 'uCameraPos', 'uLightPos', 'uLightColor', 'uAmbientStrength', 'uDiffuseStrength', 'uSpecularStrength', 'uShininess'],
 				program: null,
 			},
 			'FlatShading': {
 				vertShader: vFlat,
 				fragShader: fFlat,
 				attributes: ['aVertexPosition', 'aTextureCoord', 'aNormalCoord'],
-				uniforms: ['uProjViewMatrix', 'uModelMatrix', 'uNormalMatrix', 'cSampler', 'uLightPos', 'uLightColor'],
+				uniforms: ['uProjViewMatrix', 'uModelMatrix', 'uNormalMatrix', 'cSampler', 'uLightPos', 'uLightColor','uAmbientStrength', 'uDiffuseStrength'],
 				program: null,
 			},
 			'GouraudShading': {
 				vertShader: vGouraud,
 				fragShader: fGouraud,
 				attributes: ['aVertexPosition', 'aTextureCoord', 'aNormalCoord'],
-				uniforms: ['uProjViewMatrix', 'uModelMatrix', 'uNormalMatrix', 'cSampler', 'uCameraPos', 'uLightPos', 'uLightColor'],
+				uniforms: ['uProjViewMatrix', 'uModelMatrix', 'uNormalMatrix', 'cSampler', 'uCameraPos', 'uLightPos', 'uLightColor', 'uAmbientStrength', 'uDiffuseStrength', 'uSpecularStrength', 'uShininess'],
 				program: null,
 			},
 			'BlinnShading': {
 				vertShader: vBlinn,
 				fragShader: fBlinn,
 				attributes: ['aVertexPosition', 'aTextureCoord', 'aNormalCoord'],
-				uniforms: ['uProjViewMatrix', 'uModelMatrix', 'uNormalMatrix', 'cSampler', 'uCameraPos', 'uLightPos', 'uLightColor'],
+				uniforms: ['uProjViewMatrix', 'uModelMatrix', 'uNormalMatrix', 'cSampler', 'uCameraPos', 'uLightPos', 'uLightColor', 'uAmbientStrength', 'uDiffuseStrength', 'uSpecularStrength', 'uShininess'],
 				program: null,
 			},
 		},
@@ -272,7 +404,80 @@ window.onload = function() {
 			}
 		]
 	}
-
+	
+	/*
+	let resources = {
+		objects: [
+			{
+				mesh: pistol,
+				texture: 'colorTexture',
+				transform: new Transform(new Vector3([-bias,0.0,0.0])),
+				shader: 'FullShading'
+			},
+			{
+				mesh: pistol,
+				texture: 'colorTexture',
+				transform: new Transform(new Vector3([bias,0.0,0.0])),
+				shader: 'BlinnShading'
+			}
+		],
+		textures:{
+			uvCheckerTexture:{
+				src: uvText,
+				texture: undefined
+			},
+			colorTexture:{
+				src: cText,
+				texture: undefined
+			},
+			roughnessTexture:{
+				src: rText,
+				texture: undefined
+			},
+			normalTexture:{
+				src: nText,
+				texture: undefined
+			},
+			aoTexture:{
+				src: aoText,
+				texture: undefined
+			},
+			flatColorTexture:{
+				src: flatColor,
+				texture: undefined
+			},
+		},
+		shaders: {
+			'FullShading': {
+				vertShader: vFull,
+				fragShader: fFull,
+				attributes: ['aVertexPosition', 'aTextureCoord', 'aNormalCoord'],
+				uniforms: ['uProjViewMatrix', 'uModelMatrix', 'uNormalMatrix', 'cSampler', 'nSampler','rSampler', 'aoSampler', 'uCameraPos', 'uLightPos', 'uLightColor', 'uAmbientStrength', 'uDiffuseStrength', 'uSpecularStrength', 'uShininess'],
+				program: null,
+			},
+			'PhongShading': {
+				vertShader: vPhong,
+				fragShader: fPhong,
+				attributes: ['aVertexPosition', 'aTextureCoord', 'aNormalCoord'],
+				uniforms: ['uProjViewMatrix', 'uModelMatrix', 'uNormalMatrix', 'cSampler', 'uCameraPos', 'uLightPos', 'uLightColor', 'uAmbientStrength', 'uDiffuseStrength', 'uSpecularStrength', 'uShininess'],
+				program: null,
+			},
+			'BlinnShading': {
+				vertShader: vBlinn,
+				fragShader: fBlinn,
+				attributes: ['aVertexPosition', 'aTextureCoord', 'aNormalCoord'],
+				uniforms: ['uProjViewMatrix', 'uModelMatrix', 'uNormalMatrix', 'cSampler', 'uCameraPos', 'uLightPos', 'uLightColor', 'uAmbientStrength', 'uDiffuseStrength', 'uSpecularStrength', 'uShininess'],
+				program: null,
+			},
+		},
+		lights: [
+			{
+			position: lightPos,
+			color: lightColor
+			}
+		]
+	}
+	*/
 	objects = resources.objects;
     initScene(resources);
 }
@@ -352,17 +557,45 @@ function setShaderUniforms(gl: WebGLRenderingContext, programInfo: any, obj: any
                 gl.bindTexture(gl.TEXTURE_2D, textureInfo.texture);
                 gl.uniform1i(location, 0);
                 break;
-
+			case 'nSampler':
+				gl.activeTexture(gl.TEXTURE1);
+				gl.bindTexture(gl.TEXTURE_2D, resources.textures['normalTexture'].texture);
+				gl.uniform1i(location, 1);
+				break;
+			case 'rSampler':
+				gl.activeTexture(gl.TEXTURE2);
+				gl.bindTexture(gl.TEXTURE_2D, resources.textures['roughnessTexture'].texture);
+				gl.uniform1i(location, 2);
+				break;
+			case 'aoSampler':
+				gl.activeTexture(gl.TEXTURE3);
+				gl.bindTexture(gl.TEXTURE_2D, resources.textures['aoTexture'].texture);
+				gl.uniform1i(location, 3);
+				break;
 			case 'uCameraPos':
 				gl.uniform3fv(location, mainCam.pos.toArr);
 				break;
 
 			case'uLightColor':
-				gl.uniform3fv(location, resources.lights[0].color);
+				gl.uniform3fv(location, lightColor);
 				break;
 
 			case 'uLightPos':
-				gl.uniform3fv(location, resources.lights[0].position)
+				gl.uniform3fv(location,lightPos)
+				break;
+
+			case 'uDiffuseStrength':
+				gl.uniform3fv(location, diffuseComponent)
+				break;
+			
+			case 'uAmbientStrength':
+				gl.uniform3fv(location, ambientComponent)
+				break;
+			case 'uSpecularStrength':
+				gl.uniform1f(location, specularComponent)
+				break;
+			case 'uShininess':
+				gl.uniform1f(location, shininessComponent)
 				break;
 
             // Añade casos adicionales para otros tipos de uniformes
@@ -381,3 +614,18 @@ function setShaderUniforms(gl: WebGLRenderingContext, programInfo: any, obj: any
         }
 	}
 }
+
+function hexToNormalizedRgb(hex: string): [number, number, number] {
+	// Verificar si el formato hexadecimal incluye el símbolo '#'
+	if (hex.startsWith('#')) {
+	  hex = hex.slice(1);
+	}
+  
+	// Convertir los componentes hexadecimales en valores enteros
+	let r = parseInt(hex.substring(0, 2), 16);
+	let g = parseInt(hex.substring(2, 4), 16);
+	let b = parseInt(hex.substring(4, 6), 16);
+  
+	// Normalizar los valores (rango de 0 a 1)
+	return [r / 255, g / 255, b / 255];
+  }
