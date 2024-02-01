@@ -41,9 +41,12 @@ Durante el desarrollo de WebGl.ts, se ha incorporado un robusto conjunto de clas
 #### Entidades del Motor
 - __Camera__: Básica en cualquier motor de render esta clase actúa como el ojo a través del cual se visualiza el mundo virtual.
 - __Transform__: Fundamental para definir la posición, rotación y escala de los objetos dentro de la escena.
-- __ShaderLoader__ y __TextureLoader__: Realizan la descarga, carga y compilación (si fuera necesario) de los distintos recursos.
+- __ShaderLoader__ y __TextureLoader__: Realizan la descarga y carga de los distintos recursos.
 
 ## Render
+
+Para efectuar el renderizado de una escena utilizando WebGL.ts, se requiere la creación de un objeto de JavaScript con todos los distintos elementos presentes en la escena. Este objeto actúa como un punto central de acceso para los valores que serán utilizados por las diversas funciones de renderizado. La estructura de este objeto es muy importante, ya que dicta cómo se organizan los recursos tales como mallas (meshes), texturas, materiales (shaders), y luces, facilitando su manejo y procesamiento durante la fase de renderizado. A continuación, se detalla un esquema de cómo podría organizarse este objeto.
+
 ```javascript
 let resources = {
     objects: [
@@ -77,6 +80,7 @@ let resources = {
     ]
 }
 ```
+Con los recursos ya definidos, el proceso de renderizado se simplifica enormemente. Esto se debe a que basta con invocar al método InitScene(), proporcionándole la estructura previamente establecida, y el método se encargará de inicializar, compilar y cargar en la tarjeta gráfica los distintos datos necesarios para el dibujo de la escena. Una vez que esta carga concluye, se inicia el bucle de renderizado.
 
 ## Resultados
 Escena 1 - Comparativa entre las tecnicas de sobreado local Blinn-Phong, Flat, Gouraud y Phong
@@ -84,3 +88,7 @@ Escena 1 - Comparativa entre las tecnicas de sobreado local Blinn-Phong, Flat, G
 Escena 2 - Comparativa entre un sombreado de Phonng con Bump Mapping y uno de Blinn-Phong
 ![captura_2](https://github.com/tuicher/WebGL.ts/assets/26395726/d70a7ac2-0a88-4f57-8c1f-7ca85b571af7)
 
+## Lineas futuras
+A lo largo del desarrollo, se ha puesto un énfasis particular en la arquitectura web y en cómo se presentan los recursos disponibles. Esto ha llevado a identificar las siguientes direcciones futuras para continuar mejorando el proyecto:
+- __Incrementar la abstacción__: Se propone crear una clase '_Renderer_' que centralice toda la funcionalidad relacionada con el renderizado. Esta clase actuaría como un punto unificado para gestionar los procesos de dibujo, permitiendo una interacción más sencilla y directa con la escena.
+- __Deferred Shading__: Se busca aumenta la funcionalidad de este '_Renderer_' capaz de ejecutar múltiples pasadas de renderizado. Este enfoque permitiría manejar de manera más eficiente las luces y sombras en escenas complejas, mejorando el rendimiento y la calidad visual del renderizado.
