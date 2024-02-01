@@ -32,6 +32,10 @@ Para instalar y ejecutar este proyecto en tu máquina local, sigue estos pasos:
    ```
 Esto iniciará el servidor local y debería abrir automáticamente el proyecto en tu navegador. Si no se abre automáticamente, puedes acceder a él visitando http://localhost:3000 en tu navegador (o el puerto especificado en tu configuración).
 
+## Arquitectura
+WebGl.ts utliza una arquitectura sencilla pero funcional
+Se han implementado clases Vector 3
+
 ## Resultados
 Escena 1 - Comparativa entre las tecnicas de sobreado local Blinn-Phong, Flat, Gouraud y Phong
 ![captura_1](https://github.com/tuicher/WebGL.ts/assets/26395726/a63b1826-8856-4bd7-a576-b087455c6647)\

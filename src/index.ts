@@ -235,10 +235,6 @@ function drawScene(gl: WebGLRenderingContext, resources: any): void
 	gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-
-	mainCam.far = 1000.0;
-	mainCam.configureProjection();
-
 	for (const obj of resources.objects)
 	{
         obj.transform.rotation.rotateAroundAxis(Vector3.UP, 0.25 / fps);
@@ -248,8 +244,6 @@ function drawScene(gl: WebGLRenderingContext, resources: any): void
         gl.useProgram(programInfo.program);
 
 		setMatrixUniforms(gl, programInfo, mainCam.projViewMatrix, obj.transform.getModelMatrix());
-
-		OBJ.initMeshBuffers(gl, obj.mesh);
 
 		setShaderAttributes(gl, programInfo, obj.mesh);
         setShaderUniforms(gl, programInfo, obj, resources);
@@ -270,6 +264,13 @@ async function initScene(resources: any): Promise<void> {
     }
 
     mainCam.aspectRatio = gl.canvas.width / gl.canvas.height;
+	mainCam.far = 1000.0;
+	mainCam.configureProjection();
+
+	for (const obj of resources.objects)
+	{
+		OBJ.initMeshBuffers(gl, obj.mesh);
+	}
 
     // Iterar a través de cada shader y compilarlos
     for (const shaderKey in resources.shaders) {
